@@ -7,7 +7,8 @@ export const messageSchema = new mongoose.Schema({
     required: true,
   },
   content: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now() }
+  createdAt: { type: Date, default: Date.now() },
+  model: String
 });
 
 export const conversationSchema = new mongoose.Schema({

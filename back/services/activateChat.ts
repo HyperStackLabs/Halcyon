@@ -1,11 +1,12 @@
 import {init} from '@heyputer/puter.js/src/init.cjs'
 import { conversation } from '../models/models.js'
+import type { ChatMessage } from '@heyputer/puter.js'
 
-export default async function sendPrompt(userMessage: string){
+export default async function sendPrompt(userMessage: string, LLM: string){
     try{
         const conversationArray = await conversation.find().lean()
         const puter = init(process.env.PUTER_API_KEY)
-        const messages = [
+        const messages: ChatMessage[] = [
             {role: 'system', content: `INSTRUCTION: You are a friendly helpful assistant. To make the text italic wrap the said test in *text*, to make it bolder to emphassize something wrap a part of the text in **text** but this is completely optional as it can only be used when highlighting text or in roleplay narratives`, images: []}
         ]
         for(const document of conversationArray){
@@ -21,7 +22,7 @@ export default async function sendPrompt(userMessage: string){
         }
         messages.push({role: 'user', content: userMessage, images: []})
         const response = await puter.ai.chat(messages, {
-            model: 'gpt-5-nano'
+            model: LLM
         })
             const newMessage = new conversation({
                 messages: [
@@ -31,7 +32,8 @@ export default async function sendPrompt(userMessage: string){
                     },
                     {
                         role: 'assistant',
-                        content: response.message?.content
+                        content: response.message?.content,
+                        model: LLM
                     }
                 ]
             })

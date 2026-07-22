@@ -5,4 +5,4 @@ import { zodMessage } from './schemas/zod/chatSchema.js'
 export const router = express.Router()
 
 router.get('/chat', getAChat)
-router.post('/chat', message)
+router.post('/chat', validate(zodMessage), message)
