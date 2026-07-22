@@ -20,7 +20,8 @@ export const getAChat = async (req: Request, res: Response, next: NextFunction) 
                 _id: `$messages._id`,
                 role: { $first: `$messages.role` },
                 content: { $first: `$messages.content` },
-                createdAt: { $first: `$messages.createdAt` }
+                createdAt: { $first: `$messages.createdAt` },
+                model: { $first: `$messages.model` }
                 }
             },
             { 
