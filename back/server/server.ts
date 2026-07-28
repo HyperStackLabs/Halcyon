@@ -1,10 +1,13 @@
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import { router } from '../app.js'
+import { chatRouter } from '../routes/chat.js'
+import { AuthRouter } from '../routes/auth.js'
 import rateLimit from 'express-rate-limit'
 import type { Request, Response, NextFunction } from 'express'
 import cookieParser from 'cookie-parser'
+import { userRouter } from '../routes/user.js'
+import { AIRouter } from '../routes/ai_management.js'
 
 export default function createServer(){
     const app = express()
@@ -18,7 +21,7 @@ export default function createServer(){
         credentials: true
     }));
     app.use(express.json({limit: '1mb'}))
-    app.use(router)
+    app.use(AuthRouter, chatRouter, userRouter, AIRouter)
     app.use((err: any, _: Request, res: Response, next: NextFunction) => {
         console.log(err)
         if (res.headersSent) return next(err)

@@ -6,9 +6,11 @@ export const messageSchema = new mongoose.Schema({
     enum: ["user", "assistant", "system"],
     required: true,
   },
+  user: String,
   content: { type: String, required: true },
   createdAt: { type: Date, default: Date.now() },
-  model: String
+  model: String,
+  searchMode: Boolean
 });
 
 export const conversationSchema = new mongoose.Schema({

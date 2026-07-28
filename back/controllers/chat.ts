@@ -3,8 +3,8 @@ import sendPrompt from "../services/activateChat.js";
 import { conversation } from "../models/models.js";
 export const message = (req: Request, res: Response, next: NextFunction) => {
     try{
-        const {userMessage, LLM} = req.body
-        const sendMessage = sendPrompt(userMessage, LLM)
+        const {userMessage, LLM, user} = req.body
+        const sendMessage = sendPrompt(userMessage, LLM, user)
         return res.status(200).json(sendMessage)
     }catch(error){
         console.log(error)
@@ -17,11 +17,11 @@ export const getAChat = async (req: Request, res: Response, next: NextFunction) 
             {$unwind: `$messages`},
             {
                 $group: {
-                    _id: `$messages._id`,
-                    role: { $first: `$messages.role` },
-                    content: { $first: `$messages.content` },
-                    createdAt: { $first: `$messages.createdAt` },
-                    model: { $first: `$messages.model` }
+                _id: `$messages._id`,
+                role: { $first: `$messages.role` },
+                content: { $first: `$messages.content` },
+                createdAt: { $first: `$messages.createdAt` },
+                model: { $first: `$messages.model` }
                 }
             },
             { 
