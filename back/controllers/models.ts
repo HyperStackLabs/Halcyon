@@ -25,7 +25,7 @@ export const deleteAIModel = async (req: AuthRequest, res: Response, next: NextF
         const {_id} = req.body
         const userId = req.user?.id
         const user = await users.findById(userId)
-        if(user?.role == 'user'){
+        if(user?.role !== 'user'){
             return res.status(403).json({message: 'You aren`t an admin, therefore you`re not allowed to modify our database'})
         }
         const deletion = await models.findByIdAndDelete({_id})
