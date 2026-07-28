@@ -1,6 +1,8 @@
 import { banlands, users } from "../models/models.js";
 import changePassword from "../services/changePassword.js";
 import changeProfile from "../services/changeProfile.js";
+import { goAdminService } from "../services/goAdmin.js";
+import { updateAPICredentials } from "../services/updateAPI.js";
 import type { AuthRequest } from "../types/authTypes.js";
 import type { Response, NextFunction } from "express";
 
@@ -45,13 +47,35 @@ export const updateUserController = async (req: AuthRequest, res: Response, next
 }
 export const updatePasswordController = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const id = req?.user?.id
+        const id = req.user?.id
         const {currentPassword, newPassword} = req.body
         console.log(id)
         const resultsOfEditing = await changePassword({id: String(id), currentPassword, newPassword})
         return res.status(200).json(resultsOfEditing)
     }catch(error){
         next(`${error} ERROR UPDATING PASSWORD FROM CONTROLLER`)
+        return res.status(500).json({message: 'Something went wrong'})
+    }
+}
+export const UserAPIController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const id = req.user?.id
+        const {apiKey, usageCap} = req.body
+        const result = await updateAPICredentials({id, apiKey, usageCap})
+        return res.status(200).json(result)
+    }catch(error){
+        next(`${error} ERROR UPDATING API CREDENTIALS`)
+        return res.status(500).json({message: 'Something went wrong'})
+    }
+}
+export const adminPromoController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const id = req.user?.id
+        const {role, rateLimit} = req.body
+        const promotionResult = await goAdminService({id, role, rateLimit})
+        return res.status(200).json(promotionResult)
+    }catch(error){
+        next(`${error} ERROR PROMOTING TO ADMIN`)
         return res.status(500).json({message: 'Something went wrong'})
     }
 }

@@ -1,10 +1,12 @@
 import type { Request, Response, NextFunction } from "express";
 import sendPrompt from "../services/activateChat.js";
 import { conversation } from "../models/models.js";
-export const message = (req: Request, res: Response, next: NextFunction) => {
+import type { AuthRequest } from "../types/authTypes.js";
+export const message = (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
+        const id = req?.user?.id
         const {userMessage, LLM, user} = req.body
-        const sendMessage = sendPrompt(userMessage, LLM, user)
+        const sendMessage = sendPrompt(userMessage, LLM, user, id as string)
         return res.status(200).json(sendMessage)
     }catch(error){
         console.log(error)

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { required } from "zod/mini";
 
 export const userSchema = new mongoose.Schema({
     userName: {type: String, required: true, unique: true},
@@ -7,5 +8,7 @@ export const userSchema = new mongoose.Schema({
     password: {type: String, required: true},
     profilePicture: String,
     rateLimit: Number,
-    role: {type: String, required: true}
+    role: {type: String, required: true},
+    API_KEY: {type: String, required: true, unique: true},
+    usageCap: {type: Number, required: true}
 })

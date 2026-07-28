@@ -13,6 +13,11 @@ export const fetchAIModelDB = async (req: AuthRequest, res: Response, next: Next
 }
 export const addAIModel = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
+        const userId = req.user?.id
+        const foundAdmin = await users.findById({_id: userId}).select('-password')
+        if(foundAdmin?.role == 'user'){
+            return res.status(403).json({message: 'You aren`t an admin, therefore you`re not allowed to modify our database'})
+        }
         const {soft_name, codename, type, image} = req.body
         const addition = createNewAIAccess({soft_name, codename, type, image})
         return res.status(201).json(addition)
@@ -25,7 +30,7 @@ export const deleteAIModel = async (req: AuthRequest, res: Response, next: NextF
         const {_id} = req.body
         const userId = req.user?.id
         const user = await users.findById(userId)
-        if(user?.role !== 'user'){
+        if(user?.role == 'user'){
             return res.status(403).json({message: 'You aren`t an admin, therefore you`re not allowed to modify our database'})
         }
         const deletion = await models.findByIdAndDelete({_id})
