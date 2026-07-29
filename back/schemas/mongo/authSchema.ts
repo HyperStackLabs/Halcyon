@@ -9,6 +9,6 @@ export const userSchema = new mongoose.Schema({
     profilePicture: String,
     rateLimit: Number,
     role: {type: String, required: true},
-    API_KEY: {type: String, required: true, unique: true},
+    API_KEY: {type: String, required: true},
     usageCap: {type: Number, required: true}
 })

@@ -25,7 +25,6 @@ export default function createServer(){
     app.use((err: any, _: Request, res: Response, next: NextFunction) => {
         console.log(err)
         if (res.headersSent) return next(err)
-        return res.status(err.status || 500).json({message: err.message || "There's a problem here..."})
     })
     return app
 }

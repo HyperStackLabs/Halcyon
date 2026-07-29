@@ -13,7 +13,8 @@ export const verifyUser = async (req: AuthRequest, res: Response, next: NextFunc
         const target = await users.findById(userId).select('-password')
         return res.status(200).json(target)
     }catch(error){
-        next(`${error} - ERROR FROM USER VERIFY CONTROLLER`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const signUp = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -22,7 +23,8 @@ export const signUp = async (req: AuthRequest, res: Response, next: NextFunction
         const signUpResult = await createUser({name, userName, password, email})
         res.status(201).json(signUpResult)
     }catch(error){
-        next(`${error} - ERROR FROM SIGN UP CONTROLLER`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const login = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -38,7 +40,8 @@ export const login = async (req: AuthRequest, res: Response, next: NextFunction)
         })
         return res.status(200).json(user)
     }catch(error){
-        next(`${error} - ERROR FROM LOGIN CONTROLLER`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const SignOut = async (_: AuthRequest, res: Response, next: NextFunction) => {
@@ -51,7 +54,7 @@ export const SignOut = async (_: AuthRequest, res: Response, next: NextFunction)
         })
         res.status(200).json({message: 'Signed out successfully'})
     }catch(error){
-        console.log(error)
-        next(`${error} - ERROR FROM SIGN-OUT`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }

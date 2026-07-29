@@ -1,6 +1,7 @@
 import { banlands, users } from "../models/models.js";
 import changePassword from "../services/changePassword.js";
 import changeProfile from "../services/changeProfile.js";
+import { deleteAccountService } from "../services/deleteUser.js";
 import { goAdminService } from "../services/goAdmin.js";
 import { updateAPICredentials } from "../services/updateAPI.js";
 import type { AuthRequest } from "../types/authTypes.js";
@@ -11,8 +12,8 @@ export const getUsersDB = async (req: AuthRequest, res: Response, next: NextFunc
         const locatedUserCollection = await users.find({}).select('-password').lean()
         return res.status(200).json(locatedUserCollection)
     }catch(error){
-        console.log(error)
-        next(`${error} ERROR ATTEMPTING TO FETCH USERS`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -30,8 +31,8 @@ export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunc
         const deletion = await users.deleteOne({_id: id})
         res.status(204).json({deletion, message: {message: 'Successfully banned.'}})
     }catch(error){
-        console.log(error, targetedUser)
-        next(`${error} ERROR DELETING THE USER FROM CONTROLLER`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const updateUserController = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -41,8 +42,8 @@ export const updateUserController = async (req: AuthRequest, res: Response, next
         const resultsOfEditing = await changeProfile({id: String(id), profilePicture: profile.profilePicture, userName: profile.userName, email: profile.email, displayName: profile.displayName})
         return res.status(200).json(resultsOfEditing)
     }catch(error){
-        next(`${error} ERROR UPDATING THE USER FROM CONTROLLER`)
-        return res.status(500).json({message: 'Something went wrong'})
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const updatePasswordController = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -53,29 +54,39 @@ export const updatePasswordController = async (req: AuthRequest, res: Response, 
         const resultsOfEditing = await changePassword({id: String(id), currentPassword, newPassword})
         return res.status(200).json(resultsOfEditing)
     }catch(error){
-        next(`${error} ERROR UPDATING PASSWORD FROM CONTROLLER`)
-        return res.status(500).json({message: 'Something went wrong'})
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const UserAPIController = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const id = req.user?.id
+        const id = req.user?.id as string
         const {apiKey, usageCap} = req.body
         const result = await updateAPICredentials({id, apiKey, usageCap})
         return res.status(200).json(result)
     }catch(error){
-        next(`${error} ERROR UPDATING API CREDENTIALS`)
-        return res.status(500).json({message: 'Something went wrong'})
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const adminPromoController = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const id = req.user?.id
+        const id = req.user?.id as string
         const {role, rateLimit} = req.body
         const promotionResult = await goAdminService({id, role, rateLimit})
         return res.status(200).json(promotionResult)
     }catch(error){
-        next(`${error} ERROR PROMOTING TO ADMIN`)
-        return res.status(500).json({message: 'Something went wrong'})
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
+    }
+}
+export const deleteAccuntController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const id = req.user?.id as string
+        const deletion = deleteAccountService({id})
+        return res.status(204).json(deletion)
+    }catch(error){
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }

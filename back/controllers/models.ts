@@ -8,7 +8,8 @@ export const fetchAIModelDB = async (req: AuthRequest, res: Response, next: Next
         const AILanguageModels = await models.find({})
         return res.status(200).json(AILanguageModels) 
     }catch(error){
-        next(`${error} ERROR FETCHING AI MODELS FROM CONTROLLER`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const addAIModel = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -22,7 +23,8 @@ export const addAIModel = async (req: AuthRequest, res: Response, next: NextFunc
         const addition = createNewAIAccess({soft_name, codename, type, image})
         return res.status(201).json(addition)
     }catch(error){
-        next(`${error} ERROR CREATING NEW OBJECT CONTAINING AI INFO`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const deleteAIModel = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -36,6 +38,7 @@ export const deleteAIModel = async (req: AuthRequest, res: Response, next: NextF
         const deletion = await models.findByIdAndDelete({_id})
         return res.status(204).json(deletion)
     }catch(error){
-        next(`${error} ERROR DELETING AN AI MODEL FROM CONTROLLER`)
+        next(error)
+        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
