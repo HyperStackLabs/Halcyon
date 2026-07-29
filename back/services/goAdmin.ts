@@ -1,10 +1,10 @@
 import { users } from "../models/models.js";
 
-export async function goAdminService({id, role, rateLimit}: {id: string, role: 'user' | 'admin', rateLimit: number}){
+export async function goAdminService({id, role}: {id: string, role: 'user' | 'admin'}){
    try{
         const targetedUser = await users.findByIdAndUpdate(
-            {id}, 
-            { role, rateLimit },
+            {_id: id}, 
+            { role },
             {
                 new: true,
                 runValidators: true

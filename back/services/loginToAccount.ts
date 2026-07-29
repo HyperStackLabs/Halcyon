@@ -24,7 +24,6 @@ export async function loginToAccount({email, password}: InferLogin){
             userName: target.userName,
             name: target.name,
             email: target.email,
-            rateLimit: target.rateLimit,
             role: target.role,
             profilePicture: target.profilePicture
         },

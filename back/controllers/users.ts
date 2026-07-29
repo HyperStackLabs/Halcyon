@@ -72,8 +72,8 @@ export const UserAPIController = async (req: AuthRequest, res: Response, next: N
 export const adminPromoController = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
         const id = req.user?.id as string
-        const {role, rateLimit} = req.body
-        const promotionResult = await goAdminService({id, role, rateLimit})
+        const {role} = req.body
+        const promotionResult = await goAdminService({id, role})
         return res.status(200).json(promotionResult)
     }catch(error){
         next(error)

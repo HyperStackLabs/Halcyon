@@ -7,7 +7,6 @@ export const userSchema = new mongoose.Schema({
     email: {type: String, required: true, unique: true},
     password: {type: String, required: true},
     profilePicture: String,
-    rateLimit: Number,
     role: {type: String, required: true},
     API_KEY: {type: String, required: true},
     usageCap: {type: Number, required: true}

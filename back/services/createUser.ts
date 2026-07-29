@@ -25,7 +25,6 @@ export default async function createUser({name, userName, password, email}: User
         email,
         password: await bcrypt.hash(password, 10),
         profilePicture: '',
-        rateLimit: 10,
         role: 'user',
         API_KEY: 'ey-',
         usageCap: 0.25
