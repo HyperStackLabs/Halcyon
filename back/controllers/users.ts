@@ -13,7 +13,6 @@ export const getUsersDB = async (req: AuthRequest, res: Response, next: NextFunc
         return res.status(200).json(locatedUserCollection)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -29,10 +28,9 @@ export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunc
             res.status(204).json({deletion, message: {message: 'Successfully banned.'}})
         }
         const deletion = await users.deleteOne({_id: id})
-        res.status(204).json({deletion, message: {message: 'Successfully banned.'}})
+        return res.status(204).json({deletion, message: {message: 'Successfully banned.'}})
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const updateUserController = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -43,7 +41,6 @@ export const updateUserController = async (req: AuthRequest, res: Response, next
         return res.status(200).json(resultsOfEditing)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const updatePasswordController = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -55,7 +52,6 @@ export const updatePasswordController = async (req: AuthRequest, res: Response, 
         return res.status(200).json(resultsOfEditing)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const UserAPIController = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -66,7 +62,6 @@ export const UserAPIController = async (req: AuthRequest, res: Response, next: N
         return res.status(200).json(result)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const adminPromoController = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -77,13 +72,12 @@ export const adminPromoController = async (req: AuthRequest, res: Response, next
         return res.status(200).json(promotionResult)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
-export const deleteAccuntController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const deleteAccountController = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
         const id = req.user?.id as string
-        const deletion = deleteAccountService({id})
+        const deletion = await deleteAccountService({id})
         return res.status(204).json(deletion)
     }catch(error){
         next(error)

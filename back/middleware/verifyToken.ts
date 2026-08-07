@@ -2,7 +2,11 @@ import type { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken'
 import type { AuthRequest, AuthTokenPayload } from '../types/authTypes.js';
 
-export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const verifyToken = (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction
+) => {
     const token = req.cookies.token
     if(!token){
         return res.status(401).json({message: "Unauthorized."})
@@ -15,6 +19,6 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
         req.user = decoded as AuthRequest['user']
         next()
     }catch(error){
-        next(`${error} Middleware error.`)   
+        next(error)   
     }
 }

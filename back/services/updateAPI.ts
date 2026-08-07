@@ -12,7 +12,6 @@ export async function updateAPICredentials({id, apiKey, usageCap}: {id: string, 
         foundUser.usageCap = usageCap
         await foundUser.save()
     }catch(error){
-        console.log(error)
-        throw new UserError('API Update failed', 500)
+        throw error
     }
 }

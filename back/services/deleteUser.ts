@@ -5,6 +5,6 @@ export async function deleteAccountService({id}: {id: string}){
         const target = await users.findByIdAndDelete({_id: id})
         return target
     }catch(error){
-        console.log(error)
+       throw error
     }
 }

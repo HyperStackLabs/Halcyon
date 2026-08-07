@@ -16,7 +16,6 @@ export default async function changePassword({id, currentPassword, newPassword}:
         await targetedUser.save()
         return { message: 'Password updated successfully' }
     }catch(error){
-        console.log(error)
         throw error
     }
 }

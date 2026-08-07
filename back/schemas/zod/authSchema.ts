@@ -12,6 +12,5 @@ export const zodUser = z.object({
     email: z.email(),
     password: z.string().min(6, 'Too short of a password').max(60, 'Password is too big'),
     profilePicture: z.string().optional(),
-    rateLimit: z.number().optional(),
     role: z.enum(['user', 'admin']).optional()
 })

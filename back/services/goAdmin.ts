@@ -12,6 +12,6 @@ export async function goAdminService({id, role}: {id: string, role: 'user' | 'ad
         )
         await targetedUser?.save()
     }catch(error){
-        console.log(error)
+        throw error
     }
 }

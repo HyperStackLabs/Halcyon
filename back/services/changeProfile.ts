@@ -16,7 +16,6 @@ export default async function changeProfile({id, profilePicture, userName, email
             throw new UserError('User not found to update')
         }
     }catch(error){
-        console.log(error)
         throw error
     }
 }

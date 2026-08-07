@@ -1,6 +1,6 @@
-export class chatError extends Error{
+export class AdminError extends Error{
     status: number
-    constructor(message: string, status = 429){
+    constructor(message: string, status = 404){
         super(message)
         this.status = status
         console.log(message)

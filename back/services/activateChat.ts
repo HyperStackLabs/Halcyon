@@ -19,36 +19,29 @@ export default async function sendPrompt(userMessage: string, LLM: string, user:
             {role: 'system', content: `INSTRUCTION: You are a friendly helpful assistant powered by ${LLM} interacting ${user}. To make the text italic wrap the said test in *text*, to make it bolder to emphassize something wrap a part of the text in **text** but this is completely optional as it can only be used when highlighting text or in roleplay narratives`, images: []}
         ]
         for(const document of conversationArray){
-            if(document.messages){
-                for(const message of document.messages){
-                    messages.push({
-                        role: message.role,
-                        content: String(message.content),
-                        images: []
-                    })
-                }
-            }
+            messages.push({
+                role: document.role,
+                content: String(document.content),
+                images: []
+            })
         }
         messages.push({role: 'user', content: userMessage, images: []})
         const response = await puter.ai.chat(messages, {
             model: LLM
         })
-            const newMessage = new conversation({
-                    messages: [
-                    {
-                        user,
-                        role: 'user',
-                        content: userMessage
-                    },
-                    {
-                        role: 'assistant',
-                        content: response.message?.content,
-                        model: LLM
-                    }
-                ]}
-            )
-            await newMessage.save()
+        const userMessageObject = new conversation({
+            user,
+            role: 'user',
+            content: userMessage
+        })
+        await userMessageObject.save()
+        const assistantMessage = new conversation({
+            role: 'assistant',
+            content: response.message?.content,
+            model: LLM
+        })
+        await assistantMessage.save()
     }catch(error){
-        console.log(error)
+        throw error
     }
 }

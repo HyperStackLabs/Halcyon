@@ -14,7 +14,6 @@ export const verifyUser = async (req: AuthRequest, res: Response, next: NextFunc
         return res.status(200).json(target)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const signUp = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -24,7 +23,6 @@ export const signUp = async (req: AuthRequest, res: Response, next: NextFunction
         res.status(201).json(signUpResult)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const login = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -41,7 +39,6 @@ export const login = async (req: AuthRequest, res: Response, next: NextFunction)
         return res.status(200).json(user)
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }
 export const SignOut = async (_: AuthRequest, res: Response, next: NextFunction) => {
@@ -55,6 +52,5 @@ export const SignOut = async (_: AuthRequest, res: Response, next: NextFunction)
         res.status(200).json({message: 'Signed out successfully'})
     }catch(error){
         next(error)
-        return res.status(500).json({message: 'Something went wrong.'})
     }
 }

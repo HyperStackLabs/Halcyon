@@ -5,3 +5,6 @@ export const zodMessage = z.object({
     LLM: z.string().min(1, "This is not an ai model"),
     user: z.string()
 })
+export const zodDeleteID = z.object({
+    messageID: z.string()
+})
