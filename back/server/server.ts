@@ -25,7 +25,7 @@ export default function createServer(){
     app.use((err: any, _: Request, res: Response, next: NextFunction) => {
         console.log(err)
         if (res.headersSent) return next(err)
-        return res.status(500).json({message: 'Something went wrong witht the server'})
+        return res.status(err.status).json({message: 'Something went wrong with the server'})
     })
     return app
 }

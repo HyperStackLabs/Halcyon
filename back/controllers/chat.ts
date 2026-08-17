@@ -1,4 +1,5 @@
-import type { Request, Response, NextFunction } from "express";
+import type { Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import sendPrompt from "../services/activateChat.js";
 import { conversation } from "../models/models.js";
 import type { AuthRequest } from "../types/authTypes.js";
@@ -7,17 +8,34 @@ import { RepromptService } from "../services/reprompt.js";
 export const message = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
         const id = req?.user?.id
-        const {userMessage, LLM, user} = req.body
-        const sendMessage = await sendPrompt(userMessage, LLM, user, String(id))
+        if (!id) {
+            return res.status(401).json({ message: 'Unauthorized.' })
+        }
+        const {userMessage, LLM, user, convoId} = req.body
+        const sendMessage = await sendPrompt(
+            userMessage,
+            convoId,
+            LLM,
+            user,
+            id,
+        )
         return res.status(200).json(sendMessage)
     }catch(error){
         next(error)
     }
 }
-export const getAChat = async (req: Request, res: Response, next: NextFunction) => {
+export const getAChat = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const chats = await conversation.find({})
-        return res.status(200).json(chats)
+        const convoId = typeof req.query.convoId === 'string' ? req.query.convoId : undefined
+        const userId = req.user?.id
+        if(!convoId || !userId || !mongoose.isValidObjectId(convoId)){
+            return res.status(400).json({message: 'A conversation ID is required.'})
+        }
+        const chat = await conversation.findOne({ _id: convoId, user: userId }).lean()
+        if (!chat) {
+            return res.status(404).json({message: 'Conversation not found.'})
+        }
+        return res.status(200).json(chat.messages)
     }catch(error){
         next(error)
     }
@@ -25,16 +43,24 @@ export const getAChat = async (req: Request, res: Response, next: NextFunction) 
 export const deleteMessage = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
         const {messageID} = req.body
-        const result = await deleteMessageService(messageID)
-        return res.status(204).json(result)
+        const userId = req.user?.id
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized.' })
+        }
+        const result = await deleteMessageService(messageID, userId)
+        return res.status(200).json(result)
     }catch(error){
         next(error)
     }
 }
 export const RepromptController = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const {messageID} = req.body
-        const result = await RepromptService(messageID)
+        const {messageID, LLM, userMessage, user} = req.body
+        const userId = req.user?.id
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized.' })
+        }
+        const result = await RepromptService({ messageID, LLM, userMessage, user, userId })
         return res.status(200).json(result)
     }catch(error){
         next(error)

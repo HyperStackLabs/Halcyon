@@ -14,8 +14,10 @@ export const messageSchema = new mongoose.Schema({
 });
 
 export const conversationSchema = new mongoose.Schema({
-    messages: [messageSchema]
-})
+  title: {type: String, required: true},
+  user: { type: String, required: true, index: true },
+  messages: { type: [messageSchema], default: [] },
+}, { timestamps: true })
 
 export const chatlogSchema = new mongoose.Schema({
     id: Number,

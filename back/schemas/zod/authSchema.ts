@@ -1,16 +1,16 @@
 import z from "zod";
 
 export const zodLogin = z.object({
-    email: z.email(),
+    email: z.email().trim(),
     password: z.string().min(6, 'Too short of a password').max(60, 'Password is too big'),
     rememberMe: z.boolean()
 })
 export const zodUser = z.object({
-    id: z.string().optional(),
+    id: z.string().trim().optional(),
     name: z.string().max(40, 'Woah buddy what a long name!!!'),
-    userName: z.string().min(4, 'Too small of a name, get creative!').max(30, 'Username too large'),
-    email: z.email(),
+    userName: z.string().min(4, 'Too small of a name, get creative!').trim().max(30, 'Username too large'),
+    email: z.email().lowercase().trim(),
     password: z.string().min(6, 'Too short of a password').max(60, 'Password is too big'),
-    profilePicture: z.string().optional(),
+    profilePicture: z.string().trim().optional(),
     role: z.enum(['user', 'admin']).optional()
 })

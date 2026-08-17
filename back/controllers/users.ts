@@ -1,4 +1,4 @@
-import { banlands, users } from "../models/models.js";
+import { banlands, conversation, users } from "../models/models.js";
 import changePassword from "../services/changePassword.js";
 import changeProfile from "../services/changeProfile.js";
 import { deleteAccountService } from "../services/deleteUser.js";
@@ -82,5 +82,19 @@ export const deleteAccountController = async (req: AuthRequest, res: Response, n
     }catch(error){
         next(error)
         return res.status(500).json({message: 'Something went wrong.'})
+    }
+}
+export const getConversationNames = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const ID = req.user?.id
+        if(!ID){
+            return res.status(403).json({message: "Unauthorized so therefore forbidden"})
+        }
+        const conversations = await conversation.find({user: ID}).select('title _id').sort({
+            createdAt: -1
+        })
+        return res.status(200).json(conversations)
+    }catch(error){
+        next(error)
     }
 }

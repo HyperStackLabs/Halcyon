@@ -10,9 +10,9 @@ export const zodPasswordChange = z.object({
 export const zodProfileChange = z.object({
     id: z.string(),
     profile: z.object({
-        profilePicture: z.string().optional(),
-        email: z.string().optional(),
-        userName: z.string().optional(),
+        profilePicture: z.string().trim().optional(),
+        email: z.string().lowercase().trim().optional(),
+        userName: z.string().trim().optional(),
         name: z.string().optional()
     })
 })
