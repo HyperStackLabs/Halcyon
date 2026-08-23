@@ -58,7 +58,6 @@ export function ChatInput({chatID}: {chatID?: string}) {
           {
           _id: `temp-${Date.now()}`,
           role: 'user',
-          user: user?.name,
           content: userMessage,
           createdAt: new Date().toISOString(),
         }

@@ -1,7 +1,7 @@
 import type { Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import sendPrompt from "../services/activateChat.js";
-import { conversation } from "../models/models.js";
+import { conversation, users } from "../models/models.js";
 import type { AuthRequest } from "../types/authTypes.js";
 import { deleteMessageService } from "../services/deleteMessage.js";
 import { RepromptService } from "../services/reprompt.js";
@@ -11,12 +11,17 @@ export const message = async (req: AuthRequest, res: Response, next: NextFunctio
         if (!id) {
             return res.status(401).json({ message: 'Unauthorized.' })
         }
-        const {userMessage, LLM, user, convoId} = req.body
+        const {userMessage, LLM, convoId} = req.body
+        const foundUser = await users.findById({_id: req?.user?.id}).select('name')
+        if (!foundUser) {
+            return res.status(404).json({message: 'User is not present'})
+        }
+        const user = foundUser.name
         const sendMessage = await sendPrompt(
             userMessage,
             convoId,
-            LLM,
             user,
+            LLM,
             id,
         )
         return res.status(200).json(sendMessage)
