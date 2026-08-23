@@ -1,0 +1,55 @@
+[
+  {
+    "soft_name": "GPT-4o",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/13/ChatGPT-Logo.png",
+    "codename": "gpt-4o",
+    "type": "Smart"
+  },
+  {
+    "soft_name": "Grok 4.20",
+    "image": "https://images.seeklogo.com/logo-png/61/2/grok-logo-png_seeklogo-613403.png",
+    "codename": "grok-4.20",
+    "type": "Smart"
+  },
+  {
+    "soft_name": "GPT-5.1",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/13/ChatGPT-Logo.png",
+    "codename": "gpt-5.1",
+    "type": "Smart"
+  },
+  {
+    "soft_name": "GPT-5",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/13/ChatGPT-Logo.png",
+    "codename": "gpt-5",
+    "type": "Smart"
+  },
+  {
+    "soft_name": "Deepseek V4 Pro",
+    "image": "https://images.seeklogo.com/logo-png/61/2/deepseek-ai-icon-logo-png_seeklogo-611473.png",
+    "codename": "deepseek-v4-pro",
+    "type": "Smart"
+  },
+  {
+    "soft_name": "GPT-5-Nano",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/1/13/ChatGPT-Logo.png",
+    "type": "Standard"
+  },
+  {
+    "soft_name": "Deepseek V4 Flash",
+    "image": "https://images.seeklogo.com/logo-png/61/2/deepseek-ai-icon-logo-png_seeklogo-611473.png",
+    "codename": "deepseek-v4-flash",
+    "type": "Standard"
+  },
+  {
+    "soft_name": "Grok 4.1",
+    "image": "https://images.seeklogo.com/logo-png/61/2/grok-logo-png_seeklogo-613403.png",
+    "codename": "grok-4-1-fast",
+    "type": "Standard"
+  },
+  {
+    "soft_name": "Gemini 3 Flash",
+    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Google_Gemini_icon_2025.svg/500px-Google_Gemini_icon_2025.svg.png",
+    "codename": "gemini-3-flash-preview",
+    "type": "Standard"
+  }
+]
