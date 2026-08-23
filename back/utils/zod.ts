@@ -7,6 +7,6 @@ export const validate = (schema: ZodType) => (req: Request, res: Response, next:
         console.log(errors)
         return res.status(400).json({message: 'Validation failure', errors})
     }
-    req.body == validation.data
+    req.body = validation.data
     next()
 }

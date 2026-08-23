@@ -27,7 +27,7 @@ export default async function createUser({name, userName, password, email}: User
             password: await bcrypt.hash(password, 10),
             profilePicture: '',
             role: 'user',
-            API_KEY: 'ey-',
+            API_KEY: undefined,
             usageCap: 0.25
         })
         await newUser.save()

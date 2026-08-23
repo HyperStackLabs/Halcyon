@@ -37,9 +37,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const userMenuRef = useRef<HTMLDivElement>(null)
   const { user, setCurrentUser } = useFetchUser()
-  const collection = useConvoNames()
+  const {data} = useConvoNames()
   const path = usePathname()
-  console.log(path)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -133,7 +132,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <p className="px-3 text-xs font-semibold uppercase tracking-widest text-sidebar-foreground/40">
                   Recent
                 </p>
-                {collection?.length !== 0 ? collection?.map((chat: Conversation)  => {
+                {data?.length !== 0 ? data?.map((chat: Conversation)  => {
                   return <Link
                       key={chat._id}
                       href={`/chat/${chat._id}`}

@@ -8,10 +8,12 @@ import XFetch from '@/lib/xfetch'
 import { AuthButton } from '@/components/ui/AuthButton'
 import useFetchUser from '@/hooks/useFetchUser'
 import useLoading from '@/hooks/useLoading'
+import { ErrorToast } from '@/components/ui/errorToaster'
 
 export default function LoginPage() {
   const router = useRouter()
   const {loading, setLoading} = useLoading()
+  const [errorMessage, setError] = useState('')
   const {user} = useFetchUser()
   const [credentials, setCredentials] = useState({
     email: '',
@@ -26,11 +28,13 @@ export default function LoginPage() {
         method: 'POST',
         body: JSON.stringify(credentials)
       })
-      if(response.ok){
-        router.push('/')
+      const data = await response.json()
+      if(!response.ok){
+        setError(data.message || 'Login failed.')
       }
       else{
         setLoading(false)
+        router.push('/')
         return
       }
       setCredentials({
@@ -39,7 +43,9 @@ export default function LoginPage() {
         rememberMe: true
       })
     } catch (error) {
-      console.error('Failed to log in:', error)
+      const message = error instanceof Error ? error.message : 'Something went wrong.'
+      setError(message)
+      console.error('Failed to log in:', message)
     }finally{
       setLoading(false)
     }
@@ -59,7 +65,12 @@ export default function LoginPage() {
           Log in to continue your conversations with Halcyon.
         </p>
       </div>
-
+      {errorMessage && (
+        <ErrorToast
+          onClose={() => setError('')}
+          message={errorMessage}
+        />
+      )}
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <TextField
           label="Email"
@@ -115,5 +126,6 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+
   )
 }

@@ -10,10 +10,12 @@ import Selector from './model-selector'
 import { useRouter } from 'next/navigation'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ChatMessage } from '@/types/types'
+import { ErrorToast } from './ui/errorToaster'
 
 export function ChatInput({chatID}: {chatID?: string}) {
   const [modelID, setModel] = useState('')
   const router = useRouter()
+  const [errorMessage, setError] = useState('')
   const [open, setOpen] = useState(false)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const {data = []} = getAIModels()
@@ -68,7 +70,8 @@ export function ChatInput({chatID}: {chatID?: string}) {
       queryClient.invalidateQueries({ queryKey: ['messages'] })
     },
     onError: (error) => {
-      console.error(error)
+      setError(error.message)
+      console.log(error.message)
     },
   })
 
@@ -145,6 +148,9 @@ export function ChatInput({chatID}: {chatID?: string}) {
         >
           <ArrowUp className="h-5 w-5" />
         </button>
+        {errorMessage && (
+          <ErrorToast message={errorMessage} onClose={() => setError('')}/>
+        )}
       </div>
     </form>
   )

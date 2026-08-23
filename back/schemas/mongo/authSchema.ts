@@ -7,6 +7,6 @@ export const userSchema = new mongoose.Schema({
     password: {type: String, required: true},
     profilePicture: String,
     role: {type: String, required: true, enum: ['admin', 'user']},
-    API_KEY: {type: String, required: true},
+    API_KEY: String,
     usageCap: {type: Number, required: true}
 })
