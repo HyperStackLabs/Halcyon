@@ -22,7 +22,7 @@ export default async function sendPrompt(userMessage: string, convoId: string | 
             }
         }
 
-        const puter = init(process.env.PUTER_API_KEY)
+        const puter = init(process.env.PUTER_API_KEY) // puter doesnt support BYOK
         const monthlyAllowance = (await puter.auth.getMonthlyUsage()).allowanceInfo.remaining
         if(monthlyAllowance <= 0.005){
             throw new chatError('You ran out of monthly quota, get a new API key or wait for a month', 403)
