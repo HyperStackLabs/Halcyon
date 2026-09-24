@@ -1,6 +1,7 @@
 import { banlands, conversation, users } from "../models/models.js";
 import changePassword from "../services/changePassword.js";
 import changeProfile from "../services/changeProfile.js";
+import { deleteConvo } from "../services/deleteConvo.js";
 import { deleteAccountService } from "../services/deleteUser.js";
 import { goAdminService } from "../services/goAdmin.js";
 import { updateAPICredentials } from "../services/updateAPI.js";
@@ -94,6 +95,15 @@ export const getConversationNames = async (req: AuthRequest, res: Response, next
             createdAt: -1
         })
         return res.status(200).json(conversations)
+    }catch(error){
+        next(error)
+    }
+}
+export const deleteConversation = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const {_id} = req.body
+        const result = await deleteConvo(_id)
+        return res.status(200).json(result)
     }catch(error){
         next(error)
     }

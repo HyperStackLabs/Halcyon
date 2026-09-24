@@ -19,6 +19,7 @@ export function ErrorToast({ message, onClose }: ErrorToastProps) {
         border border-destructive/30
         bg-background/95
         p-4
+        pr-12
         shadow-2xl shadow-destructive/10
         backdrop-blur-xl
       "
@@ -31,42 +32,41 @@ export function ErrorToast({ message, onClose }: ErrorToastProps) {
           bg-destructive/10
           text-destructive
         ">
-          <AlertCircle className="h-5 w-5" />
+          <AlertCircle className="h-5 w-5 text-blue-400" />
         </div>
 
         {/* Content */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="text-sm font-semibold">
-              Something went wrong
-            </h3>
-
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Dismiss error"
-              className="
-                rounded-md p-1
-                text-muted-foreground
-                transition-colors
-                hover:bg-accent
-                hover:text-foreground
-              "
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+        <div className="min-w-0 flex-1 text-left">
+          <h3 className="text-sm font-semibold">
+            Something went wrong
+          </h3>
 
           <p className="
             mt-1
             text-sm
             leading-relaxed
             text-muted-foreground
-            break-words
+            wrap-break-word
           ">
             {message}
           </p>
         </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Dismiss error"
+          className="
+            absolute right-4 top-4
+            rounded-md p-1
+            text-muted-foreground
+            transition-colors
+            hover:bg-accent
+            hover:text-foreground
+          "
+        >
+          <X className="h-4 w-4" />
+        </button>
       </div>
 
       {/* Bottom accent */}

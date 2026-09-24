@@ -9,8 +9,11 @@ import {
   MessageSquarePlus,
   PanelLeftClose,
   PanelLeftOpen,
+  MoreHorizontal,
+  Pencil,
   Settings,
   Sparkles,
+  Trash2,
   X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -23,11 +26,14 @@ import XFetch from '@/lib/xfetch'
 import useConvoNames from '@/hooks/useConvoNames'
 import { Conversation } from '@/types/types'
 import { usePathname } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+import { DeleteConversationModal } from './delete-conversation-modal'
 
 const NAV = [
   { label: 'New chat', href: '/', icon: MessageSquarePlus },
   { label: 'Discover', href: '/', icon: Compass },
-  { label: 'Library', href: '/', icon: Library },
+  { label: 'Leaderboard', href: '/', icon: Library },
   { label: 'Settings', href: '/settings', icon: Settings },
 ]
 
@@ -35,9 +41,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [conversationMenu, setConversationMenu] = useState<string | null>(null)
   const userMenuRef = useRef<HTMLDivElement>(null)
+  const conversationListRef = useRef<HTMLDivElement>(null)
   const { user, setCurrentUser } = useFetchUser()
   const {data} = useConvoNames()
+  const queryClient = useQueryClient()
+  const router = useRouter()
+  const [deleteTrigger, setDeleteTrigger] = useState(false)
+  const [convoDetails, setConvoDetails] = useState({
+    title: '',
+    id: ''
+  })
   const path = usePathname()
 
   useEffect(() => {
@@ -53,12 +68,43 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    function handleConversationMenuOutside(e: MouseEvent) {
+      if (
+        conversationListRef.current &&
+        !conversationListRef.current.contains(e.target as Node)
+      ) {
+        setConversationMenu(null)
+      }
+    }
+    document.addEventListener('mousedown', handleConversationMenuOutside)
+    return () => document.removeEventListener('mousedown', handleConversationMenuOutside)
+  }, [])
+
   async function signOut(){
     setUserMenuOpen(false)
     const response = await XFetch('http://localhost:4000/sign-out', {
       method: 'POST'
     })
     if(response.ok) setCurrentUser(null)
+  }
+  async function deleteConvo(_id: string){
+    const response = await XFetch('http://localhost:4000/delete-conversation', {
+      method: 'DELETE',
+      body: JSON.stringify({_id}),
+    })
+    if (!response.ok) {
+      throw new Error('Failed to delete conversation')
+    }
+
+    queryClient.removeQueries({ queryKey: ['messages', _id] })
+    await queryClient.invalidateQueries({ queryKey: ['conversations'] })
+    setDeleteTrigger(false)
+    setConversationMenu(null)
+
+    if (path === `/chat/${_id}`) {
+      router.push('/')
+    }
   }
   const initials = user?.name
     ? user.name
@@ -81,8 +127,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width,transform] duration-300 ease-out lg:sticky lg:top-0 lg:h-svh lg:translate-x-0',
-          collapsed ? 'lg:w-[76px]' : 'lg:w-72',
+          'fixed inset-y-0 left-0 z-50 flex flex-col overflow-hidden border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width,transform] duration-300 ease-out lg:sticky lg:top-0 lg:h-svh lg:self-start lg:translate-x-0',
+          collapsed ? 'lg:w-19' : 'lg:w-72',
           mobileOpen ? 'w-72 translate-x-0' : 'w-72 -translate-x-full',
         )}
       >
@@ -102,7 +148,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <>
             <nav
               className={`${
-                user.userName ? 'flex-1' : 'h-screen items-end p-2 justify-center'
+                user.userName ? 'min-h-0 flex-1' : 'h-screen items-end p-2 justify-center'
               } flex flex-col gap-1 px-3`}
             >
               {NAV.map((item, i) => {
@@ -128,24 +174,64 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               })}
 
               {/* Conversation list — empty by design, no mock chats */}
-              <div className={cn('mt-6 flex flex-1 flex-col gap-0.5', collapsed && 'lg:hidden')}>
+              <div ref={conversationListRef} className={cn('sidebar-scrollbar mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto', collapsed && 'lg:hidden')}>
                 <p className="px-3 text-xs font-semibold uppercase tracking-widest text-sidebar-foreground/40">
                   Recent
                 </p>
                 {data?.length !== 0 ? data?.map((chat: Conversation)  => {
-                  return <Link
-                      key={chat._id}
-                      href={`/chat/${chat._id}`}
-                      className={cn(
-                          "group flex w-full items-center rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                          path === `/chat/${chat._id}` && "bg-accent text-accent-foreground",
-                          "hover:bg-accent hover:text-accent-foreground"
-                      )}
-                  >
-                      <span className="truncate">
-                          {chat.title || "Untitled conversation"}
-                      </span>
-                  </Link>
+                  const menuOpen = conversationMenu === chat._id
+                  return <div key={chat._id} className="group relative">
+                    <Link
+                        href={`/chat/${chat._id}`}
+                        onClick={() => setConversationMenu(null)}
+                        className={cn(
+                            "flex w-full items-center rounded-lg px-3 py-2.5 pr-10 text-sm font-medium transition-colors",
+                            path === `/chat/${chat._id}` && "bg-accent text-accent-foreground",
+                            "hover:bg-accent hover:text-accent-foreground"
+                        )}
+                    >
+                        <span className="truncate">
+                            {chat.title || "Untitled conversation"}
+                        </span>
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label={`Conversation actions for ${chat.title || 'Untitled conversation'}`}
+                      aria-expanded={menuOpen}
+                      onClick={() => setConversationMenu(menuOpen ? null : chat._id)}
+                      className="absolute right-1 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-sidebar-foreground/50 opacity-0 transition-opacity hover:bg-sidebar-accent hover:text-sidebar-foreground group-hover:opacity-100 focus:opacity-100"
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </button>
+                    {menuOpen && (
+                      <div
+                        role="menu"
+                        className="absolute right-1 top-full z-20 mt-1 w-36 overflow-hidden rounded-lg border border-border bg-popover p-1 text-popover-foreground shadow-lg"
+                      >
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => setConversationMenu(null)}
+                          className="flex cursor-pointer w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-accent"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Rename
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {chat._id && setDeleteTrigger(true), setConvoDetails({
+                            id: chat._id,
+                            title: chat.title
+                          }), console.log(convoDetails)}}
+                          className="flex cursor-pointer w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 }) : <div className="mt-3 flex flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-sidebar-border/80 px-4 py-8 text-center">
                   <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-accent text-sidebar-foreground/60">
                     <Sparkles className="h-5 w-5" />
@@ -156,8 +242,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </div>}
               </div>
             </nav>
-
-            {/* User profile + dropup */}
             <div
               ref={userMenuRef}
               className="relative flex items-center gap-2 border-t border-sidebar-border p-3"
@@ -272,6 +356,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
         <main className="flex min-w-0 flex-1 flex-col">{children}</main>
       </div>
+      {deleteTrigger && <DeleteConversationModal onConfirm={() => deleteConvo(convoDetails.id)} conversationId={convoDetails.id} onClose={() => setDeleteTrigger(false)}/>}
     </div>
   )
 }

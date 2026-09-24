@@ -6,9 +6,9 @@ export default function getAIModels(){
             const response = await res.json()
             return response
         }
-        const {data = []} = useQuery({
+        const {data = [], isLoading, error} = useQuery({
             queryKey: ['models'],
             queryFn: fetchModels
         })
-    return {data}
+    return {data, isLoading, error}
 }

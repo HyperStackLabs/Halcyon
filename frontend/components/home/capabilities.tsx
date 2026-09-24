@@ -64,7 +64,7 @@ export function Capabilities() {
             )
           })}
         </div>
-
+a
         <div className="relative mt-8 grid grid-cols-2 gap-4 border-t border-border pt-8 md:grid-cols-4">
           {STATS.map((s, i) => (
             <ScrollReveal key={s.label} delay={i * 80} className="text-center md:text-left">

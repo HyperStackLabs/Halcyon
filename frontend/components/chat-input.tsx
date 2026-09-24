@@ -94,9 +94,15 @@ export function ChatInput({chatID}: {chatID?: string}) {
         id="prompt"
         value={userMessage}
         onChange={(e) => editMessage(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            e.currentTarget.form?.requestSubmit()
+          }
+        }}
         rows={1}
         placeholder="Ask Halcyon anything..."
-        className="max-h-40 disabled:opacity-50 min-h-11 w-full resize-none bg-transparent px-3 py-2.5 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none"
+        className="max-h-90 min-h-11 disabled:opacity-50 w-full resize-none bg-transparent px-3 py-2.5 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none"
       />
       <div className="flex items-center justify-between gap-2 px-1 pt-1">
         <div className="flex items-center gap-1.5">
@@ -124,7 +130,7 @@ export function ChatInput({chatID}: {chatID?: string}) {
               type="button"
               onClick={() => setOpen((open) => !open)}
               className={cn(
-                'inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium transition-colors',
+                'cursor-pointer inline-flex h-9 items-center gap-1.5 rounded-full border px-3 text-[13px] font-medium transition-colors',
                 open
                   ? 'border-primary/40 bg-primary/15 text-primary'
                   : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground',

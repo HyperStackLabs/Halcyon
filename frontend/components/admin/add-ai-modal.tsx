@@ -38,7 +38,6 @@ export const MODEL_IMAGES = [
     label: 'Z.ai'
   }
 ]
-
 const TIERS = [
   {
     value: 'Pro',
@@ -54,7 +53,7 @@ const TIERS = [
   },
 ] as const
 
-export function AddModelModal({ onClose }: { onClose: () => void,}) {
+export function AddModelModal({ onClose }: { onClose: () => void}) {
   const [imageOpen, setImageOpen] = useState(true)
   const [tierOpen, setTierOpen] = useState(false)
   const [newAI, setAI] = useState({
@@ -64,7 +63,7 @@ export function AddModelModal({ onClose }: { onClose: () => void,}) {
     tier: 'Nano',
   })
   const queryClient = useQueryClient()
-  const selectedImage = MODEL_IMAGES.find((m) => m.id === newAI.image)
+  const selectedImage = MODEL_IMAGES.find(m => m.id == newAI.image)
   const selectedTier = TIERS.find((tier) => tier.value === newAI.tier) ?? TIERS[1]
 
   const handleSubmit = async () => {
@@ -113,7 +112,7 @@ export function AddModelModal({ onClose }: { onClose: () => void,}) {
           <button
             type="button"
             onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            className="flex cursor-pointer h-8 w-8 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
@@ -162,7 +161,7 @@ export function AddModelModal({ onClose }: { onClose: () => void,}) {
                       type="button"
                       onClick={() => setAI({ ...newAI, image: img.id })}
                       className={cn(
-                        'group relative flex items-center gap-1.5 rounded-lg border p-2 transition-all',
+                        'group relative cursor-pointer flex items-center gap-1.5 rounded-lg border p-2 transition-all',
                         isSelected
                           ? 'border-primary/50 bg-primary/10'
                           : 'border-border bg-secondary/40 hover:border-border hover:bg-secondary/80'
@@ -265,7 +264,7 @@ export function AddModelModal({ onClose }: { onClose: () => void,}) {
                         setTierOpen(false)
                       }}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg border px-3.5 py-3 text-left transition-all',
+                        'flex cursor-pointer items-center gap-3 rounded-lg border px-3.5 py-3 text-left transition-all',
                         isSelected
                           ? 'border-primary/50 bg-primary/10'
                           : 'border-border bg-secondary/40 hover:bg-secondary/80'
@@ -304,7 +303,7 @@ export function AddModelModal({ onClose }: { onClose: () => void,}) {
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
+            className="rounded-full cursor-pointer border border-border px-5 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
           >
             Cancel
           </button>
@@ -312,7 +311,7 @@ export function AddModelModal({ onClose }: { onClose: () => void,}) {
             type="button"
             onClick={() => addLanguageModel.mutate()}
             disabled={!newAI.soft_name || !newAI.codename}
-            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-all hover:-translate-y-0.5 disabled:pointer-events-none disabled:opacity-40"
           >
             Add Model
           </button>

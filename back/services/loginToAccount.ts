@@ -18,7 +18,7 @@ export async function loginToAccount({email, password}: InferLogin){
             throw new AuthError('JWT_SECRET MISSING', 500)
         }
         const token = jwt.sign({id: target._id.toString()} satisfies JwtPayload, process.env.JWT_SECRET, {
-            expiresIn: '24h'
+            expiresIn: 60 * 60 * 24 * 30
         })
         return {
             user: {

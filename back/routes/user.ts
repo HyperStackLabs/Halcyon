@@ -1,6 +1,6 @@
 import express from 'express'
 import { validate } from '../utils/zod.js'
-import { adminPromoController, deleteAccountController, deleteUser, getConversationNames, getUsersDB, updatePasswordController, updateUserController, UserAPIController } from '../controllers/users.js'
+import { adminPromoController, deleteAccountController, deleteConversation, deleteUser, getConversationNames, getUsersDB, updatePasswordController, updateUserController, UserAPIController } from '../controllers/users.js'
 import { verifyToken } from '../middleware/verifyToken.js'
 import { zodAPICreds } from '../schemas/zod/api-creds.js'
 import { zodPasswordChange, zodProfileChange } from '../schemas/zod/userManagement.js'
@@ -15,3 +15,4 @@ userRouter.patch('/api-changes', verifyToken, validate(zodAPICreds), UserAPICont
 userRouter.patch('/go-admin', verifyToken, adminPromoController)
 userRouter.delete('/delete-account', verifyToken, deleteAccountController)
 userRouter.get('/get-conversations', verifyToken, getConversationNames)
+userRouter.delete('/delete-conversation', verifyToken, deleteConversation)

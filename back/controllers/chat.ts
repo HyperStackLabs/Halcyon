@@ -1,10 +1,11 @@
 import type { Response, NextFunction } from "express";
 import mongoose from "mongoose";
 import sendPrompt from "../services/activateChat.js";
-import { conversation, users } from "../models/models.js";
+import { conversation, models, users } from "../models/models.js";
 import type { AuthRequest } from "../types/authTypes.js";
 import { deleteMessageService } from "../services/deleteMessage.js";
 import { RepromptService } from "../services/reprompt.js";
+import RatingService from "../services/likeService.js";
 export const message = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
         const id = req?.user?.id
@@ -20,8 +21,8 @@ export const message = async (req: AuthRequest, res: Response, next: NextFunctio
         const sendMessage = await sendPrompt(
             userMessage,
             convoId,
-            user,
             LLM,
+            user,
             id,
         )
         return res.status(200).json(sendMessage)
@@ -66,6 +67,20 @@ export const RepromptController = async (req: AuthRequest, res: Response, next: 
             return res.status(401).json({ message: 'Unauthorized.' })
         }
         const result = await RepromptService({ messageID, LLM, userMessage, user, userId })
+        return res.status(200).json(result)
+    }catch(error){
+        next(error)
+    }
+}
+export const ratingController = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const {type, message} = req.body
+        let liked = false
+        const userId = req.user?.id
+        if (!userId) {
+            return res.status(401).json({ message: 'Unauthorized.' })
+        }
+        const result = RatingService({type, message, liked}) 
         return res.status(200).json(result)
     }catch(error){
         next(error)

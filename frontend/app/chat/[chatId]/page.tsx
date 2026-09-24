@@ -1,8 +1,8 @@
 import { AppShell } from '@/components/app-shell'
 import { ChatInput } from '@/components/chat-input'
-import { BrandMark } from '@/components/brand'
 import { SkyBackground } from '@/components/sky-background'
 import { ChatMessages } from '@/components/chat-messages'
+import DuskBackground from '@/components/dusk'
 export default async function ChatPage({
   params,
 }: {
