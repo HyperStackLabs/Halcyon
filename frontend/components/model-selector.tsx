@@ -6,6 +6,7 @@ import { Search, Check, Sparkles, Zap, Cpu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { aiModelInterface } from '@/types/model_types'
 import getAIModels from '@/hooks/getAIDatabase'
+import useFetchUser from '@/hooks/useFetchUser'
 
 const MIN_LIST_HEIGHT = 220
 
@@ -19,9 +20,9 @@ const Selector = ({
   setModel: (modelID: string) => void
 }) => {
   const [query, setQuery] = useState('')
-  const [selectedType, setSelectedType] = useState<'all' | 'pro' | 'nano'>('all')
+  const [selectedType, setSelectedType] = useState<'all' | 'pro' | 'nano' | 'agentic'>('all')
   const inputRef = useRef<HTMLInputElement>(null)
-  
+  const {user} = useFetchUser()
   const { data } = getAIModels()
 
   useEffect(() => {
@@ -37,15 +38,15 @@ const Selector = ({
       const search = query.trim().toLowerCase()
       const modelType = (model.type || '').toLowerCase()
 
-      // 1. Filter by search input
       const matchesSearch = search === '' || name.includes(search)
-
-      // 2. Filter by selected tab (All, Pro, Nano)
       let matchesType = true
       if (selectedType === 'pro') {
         matchesType = modelType === 'pro'
       } else if (selectedType === 'nano') {
         matchesType = modelType === 'nano'
+      }
+      else if (selectedType === 'agentic'){
+        matchesType = modelType === 'agentic'
       }
 
       return matchesSearch && matchesType
@@ -93,6 +94,19 @@ const Selector = ({
             <Zap className={cn('h-3.5 w-3.5', selectedType === 'pro' ? 'text-primary' : 'text-muted-foreground')} />
             <span>Pro</span>
           </button>
+          {user?.role == 'admin' && <button
+            type="button"
+            onClick={() => setSelectedType('agentic')}
+            className={cn(
+              'flex items-center justify-center gap-1.5 rounded-md py-1.5 font-medium transition-all cursor-pointer',
+              selectedType === 'agentic'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Zap className={cn('h-3.5 w-3.5', selectedType === 'pro' ? 'text-primary' : 'text-muted-foreground')} />
+            <span>agentic</span>
+          </button>}
 
           <button
             type="button"

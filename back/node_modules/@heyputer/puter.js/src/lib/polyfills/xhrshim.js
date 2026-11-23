@@ -21,10 +21,11 @@ function mergeUint8Arrays (...arrays) {
     const totalSize = arrays.reduce((acc, e) => acc + e.length, 0);
     const merged = new Uint8Array(totalSize);
 
-    arrays.forEach((array, i, arrays) => {
-        const offset = arrays.slice(0, i).reduce((acc, e) => acc + e.length, 0);
+    let offset = 0;
+    for (const array of arrays) {
         merged.set(array, offset);
-    });
+        offset += array.length;
+    }
 
     return merged;
 }
@@ -187,26 +188,32 @@ const XMLHttpRequestShim = class XMLHttpRequest extends EventTarget {
             this[sRespHeaders] = resp.headers;
             this.readyState = this.constructor.HEADERS_RECEIVED;
 
-            if ( resp.headers.get('content-type').includes('application/x-ndjson') || this.streamRequestBadForPerformance ) {
-                let bytes = new Uint8Array();
-                for await ( const chunk of resp.body ) {
+            // A bodiless response (`fetch` gives `null`, as an empty 200 from a
+            // signed storage PUT does) has no content-type to read and nothing
+            // to iterate.
+            const body = resp.body ?? [];
+
+            if ( responseType === 'text' && ((resp.headers.get('content-type') ?? '').includes('application/x-ndjson') || this.streamRequestBadForPerformance) ) {
+                const decoder = new TextDecoder();
+                this.response = '';
+                for await ( const chunk of body ) {
                     this.readyState = this.constructor.LOADING;
 
-                    bytes = mergeUint8Arrays(bytes, chunk);
-                    parseBody.call(this, bytes);
+                    this.response += decoder.decode(chunk, { stream: true });
                     this[sDispatch](new CustomEvent('progress'));
                 }
+                this.response += decoder.decode();
             } else {
                 const bytesChunks = [];
-                for await ( const chunk of resp.body ) {
+                for await ( const chunk of body ) {
                     bytesChunks.push(chunk);
                 }
-                parseBody.call(this, mergeUint8Arrays(...bytesChunks));
+                await parseBody.call(this, mergeUint8Arrays(...bytesChunks));
             }
 
             this.readyState = this.constructor.DONE;
             this[sDispatch](new CustomEvent('load'));
-        }, err => {
+        }).catch(err => {
             let eventName = 'abort';
             if ( err.name !== 'AbortError' ) {
                 this[sErrored] = true;

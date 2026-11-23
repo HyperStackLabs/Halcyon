@@ -4,14 +4,14 @@ import type { ChatMessage } from '@heyputer/puter.js'
 import { chatError } from '../errors/chatError.js'
 import mongoose from 'mongoose'
 import deleteAI from './deleteAIModel.js'
+import interactionHandler from './interactionHandler.js'
 
-export default async function sendPrompt(userMessage: string, convoId: string | undefined, LLM: string, user: string | undefined, id: string){
+export default async function sendPrompt(userMessage: string, convoId: string | undefined, LLM: string, user: string | undefined, id: string, provider: string){
     try{
         const foundUser = await users.findById({_id: id}).select('-password')
         if(!foundUser?.API_KEY){
             throw new chatError('No API Key detected, therefore unauthorized.', 403)
         }
-
         let chat = null
         if (convoId) {
             if (!mongoose.isValidObjectId(convoId)) {
@@ -24,12 +24,8 @@ export default async function sendPrompt(userMessage: string, convoId: string | 
         }
 
         const puter = init(process.env.PUTER_API_KEY) // puter doesnt support BYOK
-        const monthlyAllowance = (await puter.auth.getMonthlyUsage()).allowanceInfo.remaining
-        if(monthlyAllowance <= 0.005){
-            throw new chatError('You ran out of monthly quota, get a new API key or wait for a month', 403)
-        }
         const messages: ChatMessage[] = [
-            {role: 'system', content: `INSTRUCTION: You are a friendly helpful assistant powered by ${LLM}, please do not be repetitive. To make the text italic wrap the said test in *text*, to make it bolder to emphassize something wrap a part of the text in **text** but this is completely optional as it can only be used when highlighting text or in roleplay narratives, additionally when making a header you can wrap the desired text around <header></header> to format it properly. Additionally when intending to give a link, you can wrap the link in a <a>text</a> format to give a link`, images: []}
+            {role: 'system', content: `INSTRUCTION: You are a friendly helpful assistant powered by ${LLM}, please do not be repetitive. To make the text italic wrap the said test in *text*, to make it bolder to emphassize something wrap a part of the text in **text** but this is completely optional as it can only be used when highlighting text or in roleplay narratives, additionally when making Additionally when intending to give a link, you can wrap the link in a <a>text</a> format to give a link. additionally if in a previous message you get called a different ai, it islikey that the user was using that ai and switched`, images: []}
         ]
 
         for(const document of chat?.messages ?? []){
@@ -40,8 +36,13 @@ export default async function sendPrompt(userMessage: string, convoId: string | 
             })
         }
         messages.push({role: 'user', content: userMessage, images: []})
-        const response = await puter.ai.chat(messages, { model: LLM })
+        const response = await puter.ai.chat(messages, { model: LLM, provider: provider })
         const createdAt = new Date()
+        const totalTokens = response?.usage?.prompt_tokens + response?.usage?.completion_tokens
+        if (chat) {
+            chat.totalTokens = (chat.totalTokens ?? 0) + totalTokens
+            chat.totalTokens += totalTokens
+        }
         const newMessages = [
             { user: user ?? foundUser.name, role: 'user', content: userMessage, createdAt },
             { role: 'assistant', content: response.message?.content ?? '', model: LLM, createdAt: new Date() },
@@ -50,15 +51,17 @@ export default async function sendPrompt(userMessage: string, convoId: string | 
             chat.messages.push(...newMessages)
             await chat.save()
         } else {
-            chat = await conversation.create({ title: userMessage, user: id, messages: newMessages })
+            chat = await conversation.create({ title: userMessage, user: id, messages: newMessages, totalTokens })
         }
+        interactionHandler(LLM)
         return { convoId: chat._id.toString(), messages: chat.messages }
-    }catch(error){
-        const errorMessage = error?.message?.toLowerCase() ?? ''
-        if(errorMessage.includes('not found')){
-            const falseModel = await models.findOne({codename: LLM}).select('_id')
+    }catch(error: any){
+        if(error.error === `Model not found: ${LLM}`){
+            const falseModel = await models.findOne({codename: LLM}).select('_id codename')
             console.log(`removed model: ${falseModel?.codename}`)
-            deleteAI({_id: falseModel?.id.toString()})
+            if(falseModel){
+                deleteAI({_id: falseModel?._id.toString()})
+            }
         }
         throw error
     }

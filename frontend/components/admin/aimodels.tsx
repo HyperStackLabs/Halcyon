@@ -1,9 +1,13 @@
+''
 import { Trash2 } from 'lucide-react'
 import { aiModelInterface } from '@/types/model_types'
 import XFetch from '@/lib/xfetch'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { DeleteAIModelModal } from './delete-ai-model-modal'
 
 const ModelComponent = ({model}: {model: aiModelInterface}) => {
+  const [modalTrigger, setModal] = useState(false)
   const queryClient = useQueryClient()
   const deleteModel = useMutation({
     mutationFn: async (_id: string) => {
@@ -19,7 +23,7 @@ const ModelComponent = ({model}: {model: aiModelInterface}) => {
       console.log(error)
     }
   })
-  return (
+  return <>
     <li
             key={model._id}
             className="flex items-center justify-between gap-4 p-5 transition-colors hover:bg-secondary/30 md:px-8"
@@ -43,14 +47,15 @@ const ModelComponent = ({model}: {model: aiModelInterface}) => {
 
             <button
               type="button"
-              onClick={() => deleteModel.mutate(model._id)}
+              onClick={() => setModal(true)}
               aria-label={`Delete ${model.soft_name}`}
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+              className="inline-flex cursor-pointer h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="h-4 w-4" />
             </button>
           </li>
-  )
+          {modalTrigger && <DeleteAIModelModal onConfirm={() => deleteModel.mutate(String(model._id))} modelName={model.codename} setTrigger={setModal}/>}
+        </>
 }
 
 export default ModelComponent

@@ -4,6 +4,7 @@ export const LLMSchema = new mongoose.Schema({
     image: {type: String, required: true},
     codename: {type: String, unique: true, required: true},
     type: {type: String, required: true},
-    likes: {type: Number, default: 0},
-    interaction: {type: Number, default: 0}
+    likes: {type: [String], default: []},
+    interactions: {type: Number, default: 0},
+    provider: {type: String, required: true}
 })

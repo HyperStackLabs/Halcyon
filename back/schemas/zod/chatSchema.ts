@@ -5,7 +5,11 @@ export const zodMessage = z.object({
     LLM: z.string().min(1, "This is not an ai model").trim(),
     user: z.string().optional(),
     convoId: z.string().optional(),
+    provider: z.string().min(1).trim()
 })
 export const zodDeleteID = z.object({
     messageID: z.string()
+})
+export const zodConvoName = z.object({
+    newTitle: z.string().min(1).max(100)
 })

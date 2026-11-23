@@ -8,7 +8,7 @@ export const zodLogin = z.object({
 export const zodUser = z.object({
     id: z.string().trim().optional(),
     name: z.string().max(40, 'Woah buddy what a long name!!!'),
-    userName: z.string().min(4, 'Too small of a name, get creative!').trim().max(30, 'Username too large'),
+    userName: z.string().min(4, 'Too small of a name, get creative!').trim().max(30, 'Username too large').regex(/^[^0-9]/, 'Name cannot start with a number'),
     email: z.email().lowercase().trim(),
     password: z.string().min(6, 'Too short of a password').max(60, 'Password is too big'),
     profilePicture: z.string().trim().optional(),

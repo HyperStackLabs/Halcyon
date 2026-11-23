@@ -1,5 +1,4 @@
 'use client'
-
 import React, { useEffect, useRef } from 'react'
 import { Copy, RefreshCcw, ThumbsDown, ThumbsUp, Trash } from 'lucide-react'
 import { BrandMark } from '@/components/brand'
@@ -13,7 +12,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 function InlineText({ text }: { text: string }) {
   if (!text) return null
 
-  const inlineRegex = /(<a>[\s\S]*?<\/a>|\[[^\]]+\]\([^)]+\)|`[^`\n]+`|\*\*[^*]+\*\*|\*[^*]+\*)/g
+  const inlineRegex = /(<a\b[^>]*>[\s\S]*?<\/a>|\[[^\]]+\]\([^)]+\)|`[^`\n]+`|\*\*[^*]+\*\*|\*[^*]+\*)/gi
   const parts: React.ReactNode[] = []
   let lastIndex = 0
 
@@ -46,8 +45,12 @@ function InlineText({ text }: { text: string }) {
           {fullMatch.slice(1, -1)}
         </em>
       )
-    } else if (fullMatch.startsWith('<a>') && fullMatch.endsWith('</a>')) {
-      const rawUrl = fullMatch.slice(3, -4).trim()
+    } else if (/^<a\b/i.test(fullMatch)) {
+      const openingTagEnd = fullMatch.indexOf('>')
+      const openingTag = fullMatch.slice(0, openingTagEnd + 1)
+      const linkText = fullMatch.slice(openingTagEnd + 1, -4).trim()
+      const hrefMatch = openingTag.match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)
+      const rawUrl = (hrefMatch?.[1] ?? hrefMatch?.[2] ?? hrefMatch?.[3] ?? linkText).trim()
       const href = /^https?:\/\//i.test(rawUrl) ? rawUrl : `https://${rawUrl}`
       parts.push(
         <a
@@ -57,7 +60,7 @@ function InlineText({ text }: { text: string }) {
           rel="noopener noreferrer"
           className="font-medium text-primary underline underline-offset-4 hover:opacity-80"
         >
-          {rawUrl}
+          {linkText || rawUrl}
         </a>
       )
     } else if (fullMatch.startsWith('[') && fullMatch.includes('](')) {
@@ -234,47 +237,42 @@ function FormattedMessage({ content }: { content: string }) {
   )
 }
 
-function AssistantActions({ assignedFunction }: { assignedFunction: () => void }) {
-  const buttonStyle =
-    'inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground'
-
-  return (
-    <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-      <button type="button" aria-label="Thumbs up" onClick={assignedFunction} className={buttonStyle}>
-        <ThumbsUp className="h-3.5 w-3.5" />
-      </button>
-      <button type="button" aria-label="Thumbs down" className={buttonStyle}>
-        <ThumbsDown className="h-3.5 w-3.5" />
-      </button>
-      <button type="button" aria-label="Copy message" className={buttonStyle}>
-        <Copy className="h-3.5 w-3.5" />
-      </button>
-      <button type="button" aria-label="Delete message" onClick={assignedFunction} className={buttonStyle}>
-        <Trash className="h-3.5 w-3.5" />
-      </button>
-      <button type="button" aria-label="Regenerate message" className={buttonStyle}>
-        <RefreshCcw className="h-3.5 w-3.5" />
-      </button>
-    </div>
-  )
-}
-
 export function ChatMessages({ chatID }: { chatID: string }) {
   const { data } = useChatLog(chatID)
   const { loading } = useLoading()
   const queryClient = useQueryClient()
   const { user } = useFetchUser()
 
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const shouldAutoScrollRef = useRef(true)
+  const hasInitialScrollRef = useRef(false)
 
   useEffect(() => {
-    if (data?.length) {
-      bottomRef.current?.scrollIntoView({ behavior: 'instant' })
+    const scrollContainer = scrollContainerRef.current
+    if (!scrollContainer) return
+
+    const updateScrollPosition = () => {
+      shouldAutoScrollRef.current =
+        scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight <= 100
+    }
+
+    scrollContainer.addEventListener('scroll', updateScrollPosition, { passive: true })
+    updateScrollPosition()
+    return () => scrollContainer.removeEventListener('scroll', updateScrollPosition)
+  }, [])
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current
+    if (data?.length && scrollContainer) {
+      if (!hasInitialScrollRef.current || shouldAutoScrollRef.current) {
+        scrollContainer.scrollTo({ top: scrollContainer.scrollHeight, behavior: 'instant' })
+      }
+      hasInitialScrollRef.current = true
     }
   }, [data])
 
   const deleteQuery = useMutation({
-    mutationFn: (messageId: string) => deleteMessage(String(messageId)),
+    mutationFn: (messageId: string) => deleteMessage(messageId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', chatID] })
     },
@@ -291,7 +289,8 @@ export function ChatMessages({ chatID }: { chatID: string }) {
     : 'U'
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+    <div ref={scrollContainerRef} className="relative z-10 flex-1 overflow-y-auto px-4 py-8 md:px-8 md:py-10">
+      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       {Array.isArray(data) &&
         data.map((msg, i) => {
           const isUser = msg.role === 'user'
@@ -333,9 +332,45 @@ export function ChatMessages({ chatID }: { chatID: string }) {
                     {!isUser && `${msg.model || 'Halcyon'} • `}
                     {timeString}
                   </span>
-                  {!isUser && i === data.length - 1 && (
-                    <AssistantActions assignedFunction={() => deleteQuery.mutate(String(msg._id))} />
-                  )}
+                    <div className="mt-2 flex items-center gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                      <button
+                        type="button"
+                        aria-label="Thumbs up"
+                        onClick={() => modelRating('positive', msg, String(user?.userName))}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <ThumbsUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Thumbs down"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <ThumbsDown className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Copy message"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Delete message"
+                        onClick={() => deleteQuery.mutate(String(msg._id))}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <Trash className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Regenerate message"
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <RefreshCcw className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                 </div>
               </div>
 
@@ -367,7 +402,7 @@ export function ChatMessages({ chatID }: { chatID: string }) {
         </div>
       )}
 
-      <div ref={bottomRef} />
+      </div>
     </div>
   )
 }

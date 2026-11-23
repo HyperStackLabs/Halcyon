@@ -1,9 +1,12 @@
+import { UserError } from "../errors/userError.js";
 import { banlands, conversation, users } from "../models/models.js";
 import changePassword from "../services/changePassword.js";
 import changeProfile from "../services/changeProfile.js";
+import { lockConversationService } from "../services/chatLockService.js";
 import { deleteConvo } from "../services/deleteConvo.js";
 import { deleteAccountService } from "../services/deleteUser.js";
 import { goAdminService } from "../services/goAdmin.js";
+import renameConversationService from "../services/renameConversationService.js";
 import { updateAPICredentials } from "../services/updateAPI.js";
 import type { AuthRequest } from "../types/authTypes.js";
 import type { Response, NextFunction } from "express";
@@ -91,7 +94,7 @@ export const getConversationNames = async (req: AuthRequest, res: Response, next
         if(!ID){
             return res.status(403).json({message: "Unauthorized so therefore forbidden"})
         }
-        const conversations = await conversation.find({user: ID}).select('title _id').sort({
+        const conversations = await conversation.find({user: ID}).select('title _id totalTokens locked').sort({
             createdAt: -1
         })
         return res.status(200).json(conversations)
@@ -101,8 +104,29 @@ export const getConversationNames = async (req: AuthRequest, res: Response, next
 }
 export const deleteConversation = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const {_id} = req.body
-        const result = await deleteConvo(_id)
+        const {_id, state} = req.body
+        if(state){
+            throw new UserError('Conversation is locked therefore cannot be deleted')
+        }
+        const result = await deleteConvo(_id, state)
+        return res.status(200).json(result)
+    }catch(error){
+        next(error)
+    }
+}
+export const renameConversation = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const {newTitle, _id} = req.body
+        const result = await renameConversationService({newTitle, _id})
+        return res.status(200).json(result)
+    }catch(error){
+        next(error)
+    }
+}
+export const lockConversation = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try{
+        const {id} = req.body
+        const result = await lockConversationService({id})
         return res.status(200).json(result)
     }catch(error){
         next(error)

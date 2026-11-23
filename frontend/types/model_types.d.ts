@@ -3,5 +3,8 @@ export interface aiModelInterface {
     codename: string
     image: string
     soft_name: string,
-    tier: 'Nano' | 'Pro'
+    type: 'Nano' | 'Pro' | 'Agentic',
+    modelProvider: string
+    likes: string[]
+    interactions: number
 }

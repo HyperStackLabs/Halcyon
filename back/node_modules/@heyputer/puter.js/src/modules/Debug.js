@@ -1,4 +1,12 @@
+/**
+ * Turns on the SDK's category loggers, either from an `enabled_logs` query
+ * parameter or on request from the parent window.
+ */
 export class Debug {
+    /**
+     * @param {import('../index.js').Puter} puter
+     * @param {Record<string, unknown>} [parameters]
+     */
     constructor (puter, parameters) {
         this.puter = puter;
         this.parameters = parameters;
@@ -17,12 +25,13 @@ export class Debug {
             this.puter.logger.on(category);
         }
 
-        globalThis.addEventListener('message', async e => {
+        globalThis.addEventListener('message', e => {
             // Ensure message is from parent window
             if ( e.source !== globalThis.parent ) return;
             // (parent window is allowed to be anything)
 
             // Check if it's a debug message
+            if ( ! e.data || typeof e.data !== 'object' ) return;
             if ( ! e.data.$ ) return;
             if ( e.data.$ !== 'puterjs-debug' ) return;
 

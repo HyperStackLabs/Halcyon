@@ -1,4 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
+import useFetchUser from "./useFetchUser";
+import { aiModelInterface } from "@/types/model_types";
 
 export default function getAIModels(){
         async function fetchModels(){
@@ -6,9 +8,13 @@ export default function getAIModels(){
             const response = await res.json()
             return response
         }
-        const {data = [], isLoading, error} = useQuery({
+        let {data = [], isLoading, error} = useQuery({
             queryKey: ['models'],
             queryFn: fetchModels
         })
+        const {user} = useFetchUser()
+        if(user?.role.toLowerCase() !== 'admin'){
+            data = data.filter((model: aiModelInterface) => model.type !== 'Agentic')
+        }
     return {data, isLoading, error}
 }

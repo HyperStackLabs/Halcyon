@@ -1,10 +1,11 @@
 import express from 'express'
 import { validate } from '../utils/zod.js'
-import { adminPromoController, deleteAccountController, deleteConversation, deleteUser, getConversationNames, getUsersDB, updatePasswordController, updateUserController, UserAPIController } from '../controllers/users.js'
+import { adminPromoController, deleteAccountController, deleteConversation, deleteUser, getConversationNames, getUsersDB, lockConversation, renameConversation, updatePasswordController, updateUserController, UserAPIController } from '../controllers/users.js'
 import { verifyToken } from '../middleware/verifyToken.js'
 import { zodAPICreds } from '../schemas/zod/api-creds.js'
 import { zodPasswordChange, zodProfileChange } from '../schemas/zod/userManagement.js'
 import { verifyAdministrator } from '../middleware/verifyAdmin.js'
+import { zodConvoName } from '../schemas/zod/chatSchema.js'
 export const userRouter = express.Router()
 
 userRouter.post('/users', verifyToken, getUsersDB)
@@ -13,6 +14,8 @@ userRouter.patch('/change-profile', verifyToken, validate(zodProfileChange), upd
 userRouter.patch('/change-password', verifyToken, validate(zodPasswordChange), updatePasswordController)
 userRouter.patch('/api-changes', verifyToken, validate(zodAPICreds), UserAPIController)
 userRouter.patch('/go-admin', verifyToken, adminPromoController)
+userRouter.patch('/rename-conversation', verifyToken, verifyAdministrator, renameConversation)
 userRouter.delete('/delete-account', verifyToken, deleteAccountController)
 userRouter.get('/get-conversations', verifyToken, getConversationNames)
 userRouter.delete('/delete-conversation', verifyToken, deleteConversation)
+userRouter.patch('/lock-chat', verifyToken, lockConversation)

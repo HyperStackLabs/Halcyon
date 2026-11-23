@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import {
   ChevronUp,
+  Check,
   Compass,
   Library,
   LogOut,
@@ -15,6 +16,9 @@ import {
   Sparkles,
   Trash2,
   X,
+  Shield,
+  Lock,
+  LockIcon,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { BrandLogo, BrandMark } from '@/components/brand'
@@ -29,11 +33,12 @@ import { usePathname } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { DeleteConversationModal } from './delete-conversation-modal'
+import { ErrorToast } from './ui/errorToaster'
 
 const NAV = [
   { label: 'New chat', href: '/', icon: MessageSquarePlus },
-  { label: 'Discover', href: '/', icon: Compass },
-  { label: 'Leaderboard', href: '/', icon: Library },
+  { label: 'Admin Panel', href: '/admin', icon: Shield },
+  { label: 'Leaderboard', href: '/leaderboard', icon: Library },
   { label: 'Settings', href: '/settings', icon: Settings },
 ]
 
@@ -42,19 +47,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [conversationMenu, setConversationMenu] = useState<string | null>(null)
+  const [editingConversationId, setEditingConversationId] = useState<string | null>(null)
+  const [titleDraft, setTitleDraft] = useState('')
   const userMenuRef = useRef<HTMLDivElement>(null)
   const conversationListRef = useRef<HTMLDivElement>(null)
   const { user, setCurrentUser } = useFetchUser()
   const {data} = useConvoNames()
+  const conversations = Array.isArray(data) ? data : []
   const queryClient = useQueryClient()
   const router = useRouter()
+  const path = usePathname()
   const [deleteTrigger, setDeleteTrigger] = useState(false)
+  const [errorMessage, setError] = useState('')
   const [convoDetails, setConvoDetails] = useState({
     title: '',
     id: ''
   })
-  const path = usePathname()
-
+  const activeChat = conversations ? conversations?.find((chat: Conversation) => path === `/chat/${chat._id}`) :[]
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -86,24 +95,53 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     const response = await XFetch('http://localhost:4000/sign-out', {
       method: 'POST'
     })
-    if(response.ok) setCurrentUser(null)
+    if(response.ok){
+      setCurrentUser(null)
+    }
   }
-  async function deleteConvo(_id: string){
+  async function lockChat(id: string){
+    setConversationMenu(null)
+    const response = await XFetch('http://localhost:4000/lock-chat', {
+      method: 'PATCH',
+      body: JSON.stringify({id})
+    })
+    if(!response.ok){
+      throw new Error('Failed to lock your chat.')
+    }
+    await queryClient.invalidateQueries({ queryKey: ['conversations'] })
+  }
+  async function deleteConvo(_id: string, state: boolean){
+    setDeleteTrigger(false)
     const response = await XFetch('http://localhost:4000/delete-conversation', {
       method: 'DELETE',
-      body: JSON.stringify({_id}),
+      body: JSON.stringify({_id, state}),
     })
     if (!response.ok) {
-      throw new Error('Failed to delete conversation')
+      setError(data.message ?? 'Failed to delete conversation.')
+      return
     }
-
-    queryClient.removeQueries({ queryKey: ['messages', _id] })
     await queryClient.invalidateQueries({ queryKey: ['conversations'] })
-    setDeleteTrigger(false)
     setConversationMenu(null)
 
     if (path === `/chat/${_id}`) {
       router.push('/')
+    }
+  }
+  function startRenaming(chat: Conversation) {
+    setEditingConversationId(chat._id)
+    setTitleDraft(chat.title ?? '')
+    setConversationMenu(null)
+  }
+  async function Rename(convoId: string) {
+    try{
+        await XFetch("http://localhost:4000/rename-conversation", {
+          method: 'PATCH',
+          body: JSON.stringify({newTitle: titleDraft, _id: convoId})
+        })
+        queryClient.invalidateQueries({queryKey: ['conversations']})
+        setEditingConversationId(null)
+    }catch(error){
+      console.log(error)
     }
   }
   const initials = user?.name
@@ -151,7 +189,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 user.userName ? 'min-h-0 flex-1' : 'h-screen items-end p-2 justify-center'
               } flex flex-col gap-1 px-3`}
             >
-              {NAV.map((item, i) => {
+              {NAV.filter(link => user.role === 'admin' || link.href !== '/admin').map((item, i) => {
                 const Icon = item.icon
                 const primary = i === 0
                 return (
@@ -173,36 +211,73 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 )
               })}
 
-              {/* Conversation list — empty by design, no mock chats */}
               <div ref={conversationListRef} className={cn('sidebar-scrollbar mt-6 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto', collapsed && 'lg:hidden')}>
                 <p className="px-3 text-xs font-semibold uppercase tracking-widest text-sidebar-foreground/40">
                   Recent
                 </p>
-                {data?.length !== 0 ? data?.map((chat: Conversation)  => {
+                {conversations.length !== 0 ? data?.map((chat: Conversation)  => {
                   const menuOpen = conversationMenu === chat._id
+                  const isRenaming = editingConversationId === chat._id
+                  const title = chat.title || "Untitled conversation"
                   return <div key={chat._id} className="group relative">
-                    <Link
-                        href={`/chat/${chat._id}`}
-                        onClick={() => setConversationMenu(null)}
-                        className={cn(
-                            "flex w-full items-center rounded-lg px-3 py-2.5 pr-10 text-sm font-medium transition-colors",
-                            path === `/chat/${chat._id}` && "bg-accent text-accent-foreground",
-                            "hover:bg-accent hover:text-accent-foreground"
-                        )}
-                    >
-                        <span className="truncate">
-                            {chat.title || "Untitled conversation"}
-                        </span>
-                    </Link>
+                    {isRenaming ? (
+                      <form
+                        onSubmit={(event) => {
+                          event.preventDefault()
+                          Rename(chat._id)
+                        }}
+                        className="flex w-full items-center gap-1 rounded-lg bg-accent px-2 py-1.5"
+                      >
+                        <input
+                          autoFocus
+                          value={titleDraft}
+                          onChange={(event) => setTitleDraft(event.target.value)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Escape') setEditingConversationId(null)
+                          }}
+                          aria-label="Conversation title"
+                          className="min-w-0 flex-1 bg-transparent px-1 text-sm outline-none"
+                        />
+                        <button
+                          type="submit"
+                          aria-label="Save conversation title"
+                          className="rounded cursor-pointer p-1 text-primary hover:bg-sidebar-accent"
+                        >
+                          <Check className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label="Cancel renaming conversation"
+                          onClick={() => setEditingConversationId(null)}
+                          className="rounded cursor-pointer p-1 text-sidebar-foreground/60 hover:bg-sidebar-accent"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </form>
+                    ) : (
+                      <Link
+                          href={`/chat/${chat._id}`}
+                          onClick={() => setConversationMenu(null)}
+                          className={cn(
+                              "flex w-full items-center rounded-lg px-3 py-2.5 pr-10 text-sm font-medium transition-colors",
+                              path === `/chat/${chat._id}` && "bg-accent text-accent-foreground",
+                              "hover:bg-accent hover:text-accent-foreground"
+                          )}
+                      >
+                          <span className="truncate">{title}</span>
+                      </Link>
+                    )}
+                    {!isRenaming && (
                     <button
                       type="button"
-                      aria-label={`Conversation actions for ${chat.title || 'Untitled conversation'}`}
+                      aria-label={`Conversation actions for ${title}`}
                       aria-expanded={menuOpen}
                       onClick={() => setConversationMenu(menuOpen ? null : chat._id)}
                       className="absolute right-1 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-md text-sidebar-foreground/50 opacity-0 transition-opacity hover:bg-sidebar-accent hover:text-sidebar-foreground group-hover:opacity-100 focus:opacity-100"
                     >
                       <MoreHorizontal className="h-4 w-4" />
                     </button>
+                    )}
                     {menuOpen && (
                       <div
                         role="menu"
@@ -211,7 +286,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <button
                           type="button"
                           role="menuitem"
-                          onClick={() => setConversationMenu(null)}
+                          onClick={() => startRenaming(chat)}
                           className="flex cursor-pointer w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-accent"
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -220,10 +295,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <button
                           type="button"
                           role="menuitem"
+                          onClick={() => lockChat(chat._id)}
+                          className="flex cursor-pointer w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm hover:bg-accent"
+                        >
+                          <Lock className="h-3.5 w-3.5" />
+                          Lock
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
                           onClick={() => {chat._id && setDeleteTrigger(true), setConvoDetails({
                             id: chat._id,
                             title: chat.title
-                          }), console.log(convoDetails)}}
+                          })}}
                           className="flex cursor-pointer w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -342,12 +426,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             <PanelLeftOpen className="h-5 w-5" />
           </button>
-          <div className="flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex items-center gap-2 rounded-full border border-border bg-secondary/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 [animation:pulse-ring_2s_ease-out_infinite]" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
             </span>
             Halcyon · online
+          </div>
+          {activeChat?.locked && (
+            <LockIcon className='h-4 text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.65)]' />
+          )}
+          {activeChat && (
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              {activeChat.totalTokens?.toLocaleString() ?? '0'} tokens used
+            </span>
+          )}
           </div>
           <div className="flex items-center gap-3">
             <span className="hidden text-sm text-muted-foreground sm:inline">Theme</span>
@@ -356,7 +450,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
         <main className="flex min-w-0 flex-1 flex-col">{children}</main>
       </div>
-      {deleteTrigger && <DeleteConversationModal onConfirm={() => deleteConvo(convoDetails.id)} conversationId={convoDetails.id} onClose={() => setDeleteTrigger(false)}/>}
+      {deleteTrigger && <DeleteConversationModal onConfirm={() => deleteConvo(convoDetails.id, activeChat.locked)} conversationId={convoDetails.id} onClose={() => setDeleteTrigger(false)}/>}
+      {errorMessage && <ErrorToast onClose={() => setError('')} message={errorMessage}/>}
     </div>
   )
 }

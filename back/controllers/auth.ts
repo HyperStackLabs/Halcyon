@@ -33,7 +33,7 @@ export const login = async (req: AuthRequest, res: Response, next: NextFunction)
             path: '/',
             httpOnly: true,
             secure: true,
-            maxAge: 60 * 60 * 24 * 1000,
+            maxAge: 60 * 60 * 24 * 1000 * 30,
             sameSite: 'none'
         })
         return res.status(200).json(user)

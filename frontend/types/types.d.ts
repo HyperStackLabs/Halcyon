@@ -9,6 +9,8 @@ export interface ChatMessage {
 }
 export interface Conversation {
   _id: string,
-  title: string
+  title: string,
+  totalTokens?: number,
+  locked: boolean
 }
 export type ChatMessages = ChatMessage[]

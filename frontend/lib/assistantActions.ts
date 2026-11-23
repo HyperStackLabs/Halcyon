@@ -22,11 +22,11 @@ export async function reprompt({messageID, user, LLM, userMessage}: {messageID: 
         console.log(error)
     }
 }
-export async function modelRating(type: 'like' | 'dislike', message){
+export async function modelRating(type: 'positive' | 'negative', message, userName: string){
     try{
-        await XFetch('http://localhost:4000/rate-response', {
+        await XFetch('http://localhost:4000/response-rating', {
             method: 'POST',
-            body: JSON.stringify({type, message})
+            body: JSON.stringify({type, message, userName})
         })
     }catch(error){
         console.log(error)

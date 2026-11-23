@@ -18,9 +18,7 @@ export default async function ChatPage({
         {/* Conversation title bar */}
 
         {/* Message thread */}
-        <div className="relative z-10 flex-1 overflow-y-auto px-4 py-8 md:px-8 md:py-10">
-          <ChatMessages chatID={chatId} />
-        </div>
+        <ChatMessages chatID={chatId} />
 
         {/* Composer — anchored in the dark lower triangle */}
         <div className="relative z-10 px-4 pb-5 pt-2 md:px-8">

@@ -12,7 +12,7 @@ export const message = async (req: AuthRequest, res: Response, next: NextFunctio
         if (!id) {
             return res.status(401).json({ message: 'Unauthorized.' })
         }
-        const {userMessage, LLM, convoId} = req.body
+        const {userMessage, LLM, convoId, provider} = req.body
         const foundUser = await users.findById({_id: req?.user?.id}).select('name')
         if (!foundUser) {
             return res.status(404).json({message: 'User is not present'})
@@ -24,6 +24,7 @@ export const message = async (req: AuthRequest, res: Response, next: NextFunctio
             LLM,
             user,
             id,
+            provider
         )
         return res.status(200).json(sendMessage)
     }catch(error){
@@ -74,13 +75,12 @@ export const RepromptController = async (req: AuthRequest, res: Response, next: 
 }
 export const ratingController = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const {type, message} = req.body
-        let liked = false
+        const {type, message, userName} = req.body
         const userId = req.user?.id
         if (!userId) {
             return res.status(401).json({ message: 'Unauthorized.' })
         }
-        const result = RatingService({type, message, liked}) 
+        const result = await RatingService({type, message, userName}) 
         return res.status(200).json(result)
     }catch(error){
         next(error)

@@ -2,7 +2,7 @@ import { AdminError } from "../errors/adminError.js";
 import { models } from "../models/models.js";
 import type { LanguageModel } from "../types/modelTypes.js";
 
-export default async function createNewAIAccess({soft_name, codename, image, type}: LanguageModel){
+export default async function createNewAIAccess({soft_name, codename, image, type, provider}: LanguageModel){
     try{
         const ModelExists = await models.findOne({codename})
         if(ModelExists){
@@ -12,7 +12,8 @@ export default async function createNewAIAccess({soft_name, codename, image, typ
             soft_name,
             codename,
             image,
-            type
+            type,
+            provider
         })
         await addedLanguageModel.save()
     }catch(error){

@@ -14,8 +14,8 @@ export const fetchAIModelDB = async (req: AuthRequest, res: Response, next: Next
 }
 export const addAIModel = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try{
-        const {soft_name, codename, type, image} = req.body
-        const addition = await createNewAIAccess({soft_name, codename, type, image})
+        const {soft_name, codename, type, image, provider} = req.body
+        const addition = await createNewAIAccess({soft_name, codename, type, image, provider})
         return res.status(201).json(addition)
     }catch(error){
         next(error)

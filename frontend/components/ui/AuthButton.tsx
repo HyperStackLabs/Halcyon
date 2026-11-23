@@ -2,11 +2,9 @@ import useLoading from '@/hooks/useLoading'
 import React from 'react'
 import { LoaderCircle } from 'lucide-react'
 import { Button } from './button'
-import useFetchUser from '@/hooks/useFetchUser'
 
 export const AuthButton = ({text, authFunction, disabled}: {text: string, authFunction: () => void, disabled: boolean}) => {
     const {loading} = useLoading()
-    const {user} = useFetchUser()
   return (
     <Button
           type="submit"

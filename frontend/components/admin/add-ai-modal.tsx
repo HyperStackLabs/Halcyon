@@ -1,44 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { X, ChevronDown, Zap, Brain, Check } from 'lucide-react'
+import { X, ChevronDown, Zap, Brain, Check, ComputerIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import XFetch from '@/lib/xfetch'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { MODEL_IMAGES } from '@/lib/model_images'
 
-export const MODEL_IMAGES = [
-  {
-    id: 'img1',
-    src: 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/openai.svg',
-    label: 'OpenAI',
-  },
-  {
-    id: 'img2',
-    src: 'https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/grok-icon.png',
-    label: 'Grok',
-  },
-  {
-    id: 'img3',
-    src: 'https://images.seeklogo.com/logo-png/61/2/deepseek-ai-icon-logo-png_seeklogo-611473.png',
-    label: 'Deepseek',
-  },
-  {
-    id: 'img4',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Google_Gemini_icon_2025.svg/500px-Google_Gemini_icon_2025.svg.png',
-    label: 'Gemini',
-  },
-  {
-    id: 'img5',
-    src: 'https://logo-teka.com/wp-content/uploads/2026/06/qwen-ai-icon-logo.png',
-    label: 'Qwen'
-  },
-  {
-    id: 'img6',
-    src: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Z.ai_%28company_logo%29.svg/3840px-Z.ai_%28company_logo%29.svg.png',
-    label: 'Z.ai'
-  }
-]
 const TIERS = [
+  {
+    value: 'Agentic',
+    label: 'Agentic',
+    icon: ComputerIcon,
+    description: 'Do not use this.',
+  },
   {
     value: 'Pro',
     label: 'Pro',
@@ -50,7 +25,7 @@ const TIERS = [
     label: 'Nano',
     icon: Zap,
     description: 'Balanced speed and capability',
-  },
+  }
 ] as const
 
 export function AddModelModal({ onClose }: { onClose: () => void}) {
@@ -61,6 +36,7 @@ export function AddModelModal({ onClose }: { onClose: () => void}) {
     soft_name: '',
     image: MODEL_IMAGES[0].id,
     tier: 'Nano',
+    provider: MODEL_IMAGES[0].label
   })
   const queryClient = useQueryClient()
   const selectedImage = MODEL_IMAGES.find(m => m.id == newAI.image)
@@ -75,8 +51,10 @@ export function AddModelModal({ onClose }: { onClose: () => void}) {
           soft_name: newAI.soft_name,
           image: selectedImage?.src ?? '',
           type: newAI.tier,
+          provider: newAI.provider
         }),
       })
+      console.log(newAI.provider)
     } catch (err) {
       console.error('Failed to add model:', err)
     } finally {
@@ -159,7 +137,7 @@ export function AddModelModal({ onClose }: { onClose: () => void}) {
                     <button
                       key={img.id}
                       type="button"
-                      onClick={() => setAI({ ...newAI, image: img.id })}
+                      onClick={() => setAI({ ...newAI, image: img.id, provider: img.label })}
                       className={cn(
                         'group relative cursor-pointer flex items-center gap-1.5 rounded-lg border p-2 transition-all',
                         isSelected

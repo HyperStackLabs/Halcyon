@@ -1,6 +1,5 @@
 'use client'
 
-import XFetch from '@/lib/xfetch'
 import { Trash2, X } from 'lucide-react'
 
 export function DeleteConversationModal({

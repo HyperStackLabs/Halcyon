@@ -35,10 +35,10 @@ export function ChatInput({chatID}: {chatID?: string}) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  async function assignableFunction(message: string, LLM: string) {
+  async function assignableFunction(message: string, LLM: string, provider: string) {
     const response = await XFetch('http://localhost:4000/send-prompt', {
       method: 'POST',
-      body: JSON.stringify({ userMessage: message, LLM, user: user?.name, convoId: chatID}),
+      body: JSON.stringify({ userMessage: message, LLM, user: user?.name, convoId: chatID, provider}),
     })
     const res = await response.json()
     if (!response.ok) {
@@ -48,8 +48,8 @@ export function ChatInput({chatID}: {chatID?: string}) {
   }
 
   const sendPrompt = useMutation({
-    mutationFn: ({ message, llm }: { message: string; llm: string }) =>
-      assignableFunction(message, llm),
+    mutationFn: ({ message, llm, provider }: { message: string; llm: string, provider: string }) =>
+      assignableFunction(message, llm, provider),
     onMutate: () => {
       queryClient.setQueryData(
         ['messages', chatID],
@@ -67,6 +67,7 @@ export function ChatInput({chatID}: {chatID?: string}) {
     onSuccess: () => {
       editMessage('')
       queryClient.invalidateQueries({ queryKey: ['messages'] })
+      queryClient.invalidateQueries({ queryKey: ['conversations'] })
     },
     onError: (error) => {
       setError(error.message)
@@ -83,6 +84,7 @@ export function ChatInput({chatID}: {chatID?: string}) {
         sendPrompt.mutate({
           message: userMessage,
           llm: currentModel.codename,
+          provider: currentModel.provider
         })
       }}
       className="glass w-full rounded-3xl border border-border p-2.5 shadow-2xl shadow-primary/5"
@@ -101,7 +103,7 @@ export function ChatInput({chatID}: {chatID?: string}) {
           }
         }}
         rows={1}
-        placeholder="Ask Halcyon anything..."
+        placeholder={`Ask ${currentModel?.soft_name} anything...`}
         className="max-h-90 min-h-11 disabled:opacity-50 w-full resize-none bg-transparent px-3 py-2.5 text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none"
       />
       <div className="flex items-center justify-between gap-2 px-1 pt-1">
@@ -136,7 +138,7 @@ export function ChatInput({chatID}: {chatID?: string}) {
                   : 'border-border text-muted-foreground hover:bg-accent hover:text-foreground',
               )}
             >
-              <img className="h-4 w-4" src={currentModel?.image} alt={currentModel?.soft_name} />
+              <img className="h-4 w-4 rounded-full" src={currentModel?.image} alt={currentModel?.soft_name} />
               {currentModel?.soft_name}
             </button>
 
